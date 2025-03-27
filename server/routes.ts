@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { bookGenerationSchema, checkoutSchema } from "@shared/schema";
-import { generateStory, generateBookImage } from "./openai";
+import { generateStory, generateBookImage, generateVisualStory, generateVisualStoryPages } from "./openai";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 
@@ -32,21 +32,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate request body
       const validatedData = bookGenerationSchema.parse(req.body);
       
-      // Generate story using OpenAI
-      const storyResult = await generateStory(validatedData);
+      // Generate visual story using OpenAI (new approach)
+      const visualStory = await generateVisualStory(validatedData);
       
-      // Generate cover image
-      const coverImageUrl = await generateBookImage(`Book cover for "${storyResult.title}", a children's book. The main character is a ${validatedData.childGender} named ${validatedData.childName} with ${validatedData.hairStyle} hair and ${validatedData.skinTone} skin tone.`);
+      // Character description for consistent appearance in illustrations
+      const characterDesc = `${validatedData.childName}, a ${validatedData.childGender === 'neutral' ? 'child' : validatedData.childGender} with ${validatedData.hairStyle} hair and ${validatedData.skinTone} skin tone`;
       
-      // Generate preview images (typically 2 for the preview)
-      const previewImages = await Promise.all([
-        generateBookImage(`Illustration for a children's book page showing ${validatedData.childName} in a ${validatedData.storyTheme} setting, ${validatedData.characterStyle} style.`),
-        generateBookImage(`Illustration for a children's book showing ${validatedData.childName} trying to ${validatedData.storyGoal} in a ${validatedData.storyTheme} world.`)
-      ]);
+      // Generate cover image 
+      const coverImageUrl = await generateBookImage(`Book cover for "${visualStory.title}", a children's book. The main character is ${characterDesc}. Style: ${validatedData.characterStyle}.`);
+      
+      // Generate illustrations for story pages
+      const allPageImages = await generateVisualStoryPages(
+        visualStory.pages, 
+        validatedData.characterStyle,
+        characterDesc
+      );
+      
+      // Select preview images (we'll use the first 2 illustrations after the cover for preview)
+      const previewImages = allPageImages.slice(0, Math.min(2, allPageImages.length));
+      
+      // Combine all page text to form the complete story content
+      const storyContent = visualStory.pages.map(page => page.text).join('\n\n');
       
       // Store the generated book
       const book = await storage.createBook({
-        title: storyResult.title,
+        title: visualStory.title,
         childName: validatedData.childName,
         childAge: validatedData.childAge,
         childGender: validatedData.childGender,
@@ -56,22 +66,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storyTheme: validatedData.storyTheme,
         storyGoal: validatedData.storyGoal,
         storyLength: validatedData.storyLength,
-        storyContent: storyResult.content,
+        storyContent: storyContent,
         coverImageUrl,
         previewImages,
         format: "pending", // Will be set during checkout
         price: "0", // Will be set during checkout
         interests: validatedData.interests,
-        companions: validatedData.companions
+        companions: validatedData.companions,
+        // Store all page images and text
+        allPageImages: allPageImages,
+        storyPages: visualStory.pages
       });
       
       // Return the generated book details
       res.status(200).json({
         bookId: book.id,
-        title: storyResult.title,
-        content: storyResult.content,
+        title: visualStory.title,
+        content: storyContent,
         coverImageUrl,
-        previewImages
+        previewImages,
+        // Include page info for potentially showing the entire book 
+        pages: visualStory.pages.map((page, index) => ({
+          text: page.text,
+          imageUrl: index < allPageImages.length ? allPageImages[index] : null
+        }))
       });
     } catch (error) {
       console.error("Error generating book:", error);
@@ -81,7 +99,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: validationError.message });
       }
       
-      res.status(500).json({ message: "Failed to generate book" });
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to generate book" 
+      });
     }
   });
 

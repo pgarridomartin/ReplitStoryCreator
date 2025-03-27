@@ -2,6 +2,12 @@ import { pgTable, text, serial, integer, boolean, jsonb, timestamp } from "drizz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Story page interface for visual stories
+export interface StoryPage {
+  text: string;
+  description: string;
+}
+
 // User schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -33,6 +39,9 @@ export const books = pgTable("books", {
   storyContent: text("story_content").notNull(),
   coverImageUrl: text("cover_image_url"),
   previewImages: jsonb("preview_images").$type<string[]>(),
+  // New fields for visual stories
+  allPageImages: jsonb("all_page_images").$type<string[]>(),
+  storyPages: jsonb("story_pages").$type<StoryPage[]>(),
   format: text("format").notNull(),
   price: text("price").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
