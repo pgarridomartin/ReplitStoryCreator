@@ -219,51 +219,65 @@ export async function generateBookImage(prompt: string): Promise<string> {
 
 export async function generateVisualStoryPages(pages: StoryPage[], characterStyle: string, characterDesc: string): Promise<string[]> {
   try {
+    // Extract specific visual traits from the character description for reinforcement
+    const characterTraits = extractVisualTraits(characterDesc);
+    
     // First, generate the first image separately to use as a reference for maintaining consistency
     const firstPageIndex = 0;
     const firstPageNumber = firstPageIndex + 1;
     
-    // Create a detailed prompt for the first page
+    // Create a detailed prompt for the first page with specific visual instructions
     const firstPagePrompt = `Create a children's book illustration for page ${firstPageNumber}:
     
 Scene: ${pages[firstPageIndex].description}
 
-The illustration should feature ${characterDesc}.
-This is the first page of the story, so make sure to establish the setting and introduce the character.
+Visually important details:
+1. The main character is ${characterDesc}
+2. This is the first page of the story, so establish a clear visual design for the character
+3. The character should have distinct and recognizable features
+4. Focus on creating a memorable character design with consistent ${characterTraits.join(', ')}
 
 Art style: ${characterStyle}
 
 Use ${characterStyle === 'watercolor' ? 'soft brushstrokes and flowing colors' : 
       characterStyle === '3d' ? 'dimensional characters and realistic textures' : 
-      'vibrant colors and clean outlines'} with a child-friendly aesthetic appropriate for a children's book.`;
+      'vibrant colors and clean outlines'} with a child-friendly aesthetic appropriate for a children's book.
 
-    console.log("Generating first page image to use as character reference...");
+I will use this character design as a reference model for all subsequent illustrations.`;
+
+    console.log("Generating base character model as reference...");
     const firstPageImageUrl = await generateImageWithGemini(firstPagePrompt);
     const firstPageImagePath = firstPageImageUrl.replace(/^\/images\//, '');
     const firstPageImageFullPath = `public/images/${firstPageImagePath}`;
-    console.log(`First page image generated at: ${firstPageImageFullPath}`);
+    console.log(`Base character model established at: ${firstPageImageFullPath}`);
     
-    // Now create prompts for the remaining pages, referencing the first image for character consistency
+    // Now create prompts for the remaining pages, using the first as a visual reference model
     const remainingPagePrompts = pages.slice(1).map((page, index) => {
       const pageNumber = index + 2; // +2 because index starts at 0 and we've already handled page 1
       
-      // Create a detailed prompt for this specific page, referencing the first image
-      return `Create a children's book illustration for page ${pageNumber}, maintaining character consistency:
+      // Create a detailed prompt using specific visual anchoring techniques
+      return `Create a children's book illustration for page ${pageNumber} using the established character model:
       
 Scene: ${page.description}
 
-The illustration should feature ${characterDesc} with EXACTLY the same appearance, style, and character design as shown in the first page.
-Keep the character's features, proportions, coloring, and outfit identical to maintain a cohesive look throughout the book.
+CHARACTER CONSISTENCY REQUIREMENTS:
+1. The main character MUST look exactly like the character from the first illustration - same face, hair, outfit, and proportions
+2. Keep ${characterTraits.join(', ')} consistent with the first illustration
+3. Maintain the exact same visual style for the character
+4. Only the pose and action should change to match this scene
+5. The character's distinct features from the first illustration must be preserved exactly
 
-Art style: ${characterStyle}
+Visual reference: Use the first illustration as the definitive reference for the character's appearance
 
-Use ${characterStyle === 'watercolor' ? 'soft brushstrokes and flowing colors' : 
-      characterStyle === '3d' ? 'dimensional characters and realistic textures' : 
-      'vibrant colors and clean outlines'} with a child-friendly aesthetic appropriate for a children's book.`;
+Art style: ${characterStyle} - maintain the exact same visual treatment as the first illustration
+
+Use ${characterStyle === 'watercolor' ? 'the same soft brushstrokes and flowing colors' : 
+      characterStyle === '3d' ? 'the same dimensional rendering and textures' : 
+      'the same vibrant colors and clean outlines'} as in the first illustration.`;
     });
 
-    // Generate the remaining images
-    console.log(`Generating ${remainingPagePrompts.length} remaining page images with consistent character design...`);
+    // Generate the remaining images based on the visual reference model
+    console.log(`Generating ${remainingPagePrompts.length} subsequent illustrations using established character model...`);
     const remainingPageImageUrls = await generateVisualStoryImagesWithGemini(remainingPagePrompts);
     
     // Combine the first image with the remaining images
@@ -272,24 +286,98 @@ Use ${characterStyle === 'watercolor' ? 'soft brushstrokes and flowing colors' :
     console.error("Gemini visual story pages generation error:", error);
     
     // Instead of throwing an error, return fallback images
-    // Our updated Gemini implementation handles fallbacks automatically
-    console.log("Using fallback images for the story");
+    console.log("Using alternative approach for story illustrations");
     
     try {
-      // Try once more with different approach - generate all images at once without the reference system
-      const fallbackPrompts = pages.map((page, index) => {
-        const pageNumber = index + 1;
-        return `Children's book illustration for page ${pageNumber} in ${characterStyle} style: ${characterDesc} in scene: ${page.description.substring(0, 100)}. Maintain consistent character appearance across all illustrations.`;
-      });
+      // Try once more with a sequential approach, generating one image at a time
+      // and referencing the previous for character consistency
+      let generatedImages: string[] = [];
       
-      return await generateVisualStoryImagesWithGemini(fallbackPrompts);
+      for (let i = 0; i < pages.length; i++) {
+        const pageNumber = i + 1;
+        let prompt = "";
+        
+        if (i === 0) {
+          // First page - establish character model
+          prompt = `Children's book illustration for page ${pageNumber}: ${pages[i].description}. 
+          Character: ${characterDesc} in ${characterStyle} style. 
+          Make the character design distinct and memorable.`;
+        } else {
+          // Subsequent pages - reference the established character 
+          prompt = `Children's book illustration for page ${pageNumber}: ${pages[i].description}. 
+          Keep the character looking EXACTLY IDENTICAL to the previous illustrations. 
+          Same ${characterDesc} with the same face, hair, outfit, and proportions in ${characterStyle} style.`;
+        }
+        
+        console.log(`Generating page ${pageNumber} sequentially...`);
+        const imageUrl = await generateImageWithGemini(prompt);
+        generatedImages.push(imageUrl);
+      }
+      
+      return generatedImages;
     } catch (fallbackError) {
-      console.error("Fallback image generation also failed:", fallbackError);
+      console.error("Sequential image generation also failed:", fallbackError);
       
-      // As a last resort, return one default image per page
-      return pages.map((_, index) => {
-        return `https://images.unsplash.com/photo-1629414278888-abcdb8e0a904?w=800&auto=format&fit=crop&page=${index}`;
-      });
+      // As a last resort, try one more approach with a single batch
+      try {
+        const simplifiedPrompts = pages.map((page, index) => {
+          const pageNumber = index + 1;
+          return `Children's book illustration, page ${pageNumber}: ${characterDesc} in ${characterStyle} style. Scene: ${page.description.substring(0, 100)}. IMPORTANT: Character must have consistent appearance across all illustrations.`;
+        });
+        
+        return await generateVisualStoryImagesWithGemini(simplifiedPrompts);
+      } catch (finalError) {
+        console.error("All image generation attempts failed:", finalError);
+        
+        return pages.map((_, index) => {
+          return `https://images.unsplash.com/photo-1629414278888-abcdb8e0a904?w=800&auto=format&fit=crop&page=${index}`;
+        });
+      }
     }
   }
+}
+
+// Helper function to extract key visual traits from character description
+function extractVisualTraits(description: string): string[] {
+  const traits: string[] = [];
+  
+  // Extract hair details
+  if (description.includes("curly hair")) traits.push("curly hair");
+  else if (description.includes("long hair")) traits.push("long hair");
+  else if (description.includes("short hair")) traits.push("short hair");
+  else if (description.includes("wavy hair")) traits.push("wavy hair");
+  
+  // Extract hair color if mentioned
+  if (description.includes("brown hair")) traits.push("brown hair");
+  else if (description.includes("blonde hair")) traits.push("blonde hair");
+  else if (description.includes("black hair")) traits.push("black hair");
+  else if (description.includes("red hair")) traits.push("red hair");
+  
+  // Extract skin tone
+  if (description.includes("light skin")) traits.push("light skin tone");
+  else if (description.includes("medium skin")) traits.push("medium skin tone");
+  else if (description.includes("tan skin")) traits.push("tan skin tone");
+  else if (description.includes("dark skin")) traits.push("dark skin tone");
+  
+  // Extract eye color if mentioned
+  if (description.includes("blue eyes")) traits.push("blue eyes");
+  else if (description.includes("brown eyes")) traits.push("brown eyes");
+  else if (description.includes("green eyes")) traits.push("green eyes");
+  
+  // Extract clothing style if mentioned
+  if (description.includes("casual clothes")) traits.push("casual outfit");
+  else if (description.includes("formal clothes")) traits.push("formal outfit");
+  else if (description.includes("sporty clothes")) traits.push("sporty outfit");
+  
+  // Extract facial features if mentioned
+  if (description.includes("freckles")) traits.push("freckles");
+  else if (description.includes("dimples")) traits.push("dimples");
+  else if (description.includes("rosy cheeks")) traits.push("rosy cheeks");
+  
+  // If we couldn't extract specific traits, add generic ones
+  if (traits.length === 0) {
+    traits.push("distinctive facial features", "consistent outfit", "same hairstyle");
+  }
+  
+  return traits;
 }
