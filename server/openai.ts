@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { BookGenerationRequest, StoryPage } from "@shared/schema";
+import { generateImageWithGemini, generateVisualStoryImagesWithGemini } from "./gemini";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -148,34 +149,23 @@ Format your response as JSON with this structure:
 
 export async function generateBookImage(prompt: string): Promise<string> {
   try {
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: `Create a children's book illustration: ${prompt}. Use a vibrant, colorful style with a child-friendly aesthetic. Ensure the image is appealing to children, with bright colors and a whimsical, playful style.`,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-    });
-
-    if (!response.data[0].url) {
-      throw new Error("No image URL returned from OpenAI");
-    }
-
-    return response.data[0].url;
+    // Now using Gemini instead of DALL-E 3
+    return await generateImageWithGemini(prompt);
   } catch (error) {
-    console.error("OpenAI image generation error:", error);
-    throw new Error("Failed to generate image. Please try again.");
+    console.error("Gemini image generation error:", error);
+    throw new Error("Failed to generate image with Gemini. Please try again.");
   }
 }
 
 export async function generateVisualStoryPages(pages: StoryPage[], characterStyle: string, characterDesc: string): Promise<string[]> {
   try {
-    // Generate images for each page in parallel
-    const imagePromises = pages.map(async (page, index) => {
+    // Create prompts for each page
+    const imagePrompts = pages.map((page, index) => {
       const isFirstPage = index === 0;
       const pageNumber = index + 1;
       
       // Create a detailed prompt for this specific page
-      const prompt = `Create a ${characterStyle} style children's book illustration for page ${pageNumber}:
+      return `Create a ${characterStyle} style children's book illustration for page ${pageNumber}:
       
 Scene: ${page.description}
 
@@ -183,29 +173,12 @@ The illustration should feature ${characterDesc}.
 ${isFirstPage ? "This is the first page of the story, so make sure to establish the setting and introduce the character." : ""}
 
 Use vibrant colors and a child-friendly aesthetic appropriate for a children's book.`;
-
-      const response = await openai.images.generate({
-        model: "dall-e-3",
-        prompt,
-        n: 1,
-        size: "1024x1024",
-        quality: "standard",
-      });
-
-      if (!response.data[0].url) {
-        throw new Error(`No image URL returned for page ${pageNumber}`);
-      }
-
-      return response.data[0].url;
     });
 
-    // Wait for all image generation to complete
-    const results = await Promise.all(imagePromises);
-    
-    // Filter out any undefined values (should not happen with our error handling)
-    return results.filter((url): url is string => typeof url === 'string');
+    // Use Gemini to generate all the images
+    return await generateVisualStoryImagesWithGemini(imagePrompts);
   } catch (error) {
-    console.error("OpenAI visual story pages generation error:", error);
-    throw new Error("Failed to generate story illustrations. Please try again later.");
+    console.error("Gemini visual story pages generation error:", error);
+    throw new Error("Failed to generate story illustrations with Gemini. Please try again later.");
   }
 }
