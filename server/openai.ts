@@ -31,10 +31,39 @@ export async function generateStory(bookData: BookGenerationRequest): Promise<St
     const genderPossessive = bookData.childGender === 'boy' ? 'his' : 
                               bookData.childGender === 'girl' ? 'her' : 'their';
     
+    // Build detailed character description using available information
+    let characterDesc = `${bookData.childName}, a ${bookData.childGender === 'neutral' ? 'child' : bookData.childGender} with ${bookData.hairStyle} hair and ${bookData.skinTone} skin tone`;
+    
+    // Add advanced character details if available
+    const details = [];
+    
+    if (bookData.hairColor) details.push(`${bookData.hairColor} hair`);
+    if (bookData.eyeColor) details.push(`${bookData.eyeColor} eyes`);
+    if (bookData.height) details.push(`${bookData.height} height`);
+    if (bookData.buildType) details.push(`${bookData.buildType} build`);
+    
+    // Add facial features if available
+    if (bookData.facialFeatures && bookData.facialFeatures.length > 0) {
+      details.push(`facial features: ${bookData.facialFeatures.join(', ')}`);
+    }
+    
+    // Add clothing style if available
+    if (bookData.clothingStyle) details.push(`wearing ${bookData.clothingStyle} clothes`);
+    
+    // Add accessories if available
+    if (bookData.accessories && bookData.accessories.length > 0) {
+      details.push(`with accessories: ${bookData.accessories.join(', ')}`);
+    }
+    
+    // Append all details to the character description
+    if (details.length > 0) {
+      characterDesc += `. They have ${details.join('; ')}.`;
+    }
+    
     // Construct the prompt with detailed instructions for a visual story
     const prompt = `Create a ${storyLength} children's story for a ${bookData.childAge} year old with the following details:
 
-Main Character: ${bookData.childName}, a ${bookData.childGender === 'neutral' ? 'child' : bookData.childGender} with ${bookData.hairStyle} hair and ${bookData.skinTone} skin tone.
+Main Character: ${characterDesc}
 
 Interests: ${bookData.interests.join(', ')}
 
@@ -87,7 +116,34 @@ export async function generateVisualStory(bookData: BookGenerationRequest): Prom
     const artStyle = bookData.characterStyle || "cartoon";
     
     // Character description for consistent appearance
-    const characterDesc = `${bookData.childName}, a ${bookData.childGender === 'neutral' ? 'child' : bookData.childGender} with ${bookData.hairStyle} hair and ${bookData.skinTone} skin tone`;
+    // Build detailed character description using available information
+    let characterDesc = `${bookData.childName}, a ${bookData.childGender === 'neutral' ? 'child' : bookData.childGender} with ${bookData.hairStyle} hair and ${bookData.skinTone} skin tone`;
+    
+    // Add advanced character details if available
+    const details = [];
+    
+    if (bookData.hairColor) details.push(`${bookData.hairColor} hair`);
+    if (bookData.eyeColor) details.push(`${bookData.eyeColor} eyes`);
+    if (bookData.height) details.push(`${bookData.height} height`);
+    if (bookData.buildType) details.push(`${bookData.buildType} build`);
+    
+    // Add facial features if available
+    if (bookData.facialFeatures && bookData.facialFeatures.length > 0) {
+      details.push(`facial features: ${bookData.facialFeatures.join(', ')}`);
+    }
+    
+    // Add clothing style if available
+    if (bookData.clothingStyle) details.push(`wearing ${bookData.clothingStyle} clothes`);
+    
+    // Add accessories if available
+    if (bookData.accessories && bookData.accessories.length > 0) {
+      details.push(`with accessories: ${bookData.accessories.join(', ')}`);
+    }
+    
+    // Append all details to the character description
+    if (details.length > 0) {
+      characterDesc += `. They have ${details.join('; ')}.`;
+    }
     
     // Construct detailed prompt for visual story
     const prompt = `Create a children's picture book with ${numPages} pages about ${characterDesc}.

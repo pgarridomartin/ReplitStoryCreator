@@ -17,13 +17,24 @@ type Step = 1 | 2 | 3 | 4 | 5;
 export default function CreateBook() {
   const [currentStep, setCurrentStep] = useState<Step>(1);
   const [bookData, setBookData] = useState<BookGenerationRequest>({
+    // Basic information
     childName: "",
     childAge: "",
     childGender: "",
     interests: [],
+    // Basic customization
     characterStyle: "",
     hairStyle: "",
     skinTone: "",
+    // Advanced customization
+    hairColor: "",
+    eyeColor: "",
+    clothingStyle: "",
+    accessories: [],
+    facialFeatures: [],
+    height: "",
+    buildType: "",
+    // Story settings
     storyTheme: "",
     storyGoal: "",
     companions: [],

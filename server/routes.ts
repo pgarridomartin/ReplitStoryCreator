@@ -60,9 +60,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         childName: validatedData.childName,
         childAge: validatedData.childAge,
         childGender: validatedData.childGender,
+        // Basic character customization
         characterStyle: validatedData.characterStyle,
         hairStyle: validatedData.hairStyle,
         skinTone: validatedData.skinTone,
+        // Advanced character customization
+        hairColor: validatedData.hairColor,
+        eyeColor: validatedData.eyeColor,
+        clothingStyle: validatedData.clothingStyle,
+        accessories: validatedData.accessories || [],
+        facialFeatures: validatedData.facialFeatures || [],
+        height: validatedData.height,
+        buildType: validatedData.buildType,
+        // Story settings
         storyTheme: validatedData.storyTheme,
         storyGoal: validatedData.storyGoal,
         storyLength: validatedData.storyLength,
