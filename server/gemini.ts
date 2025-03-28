@@ -16,9 +16,9 @@ if (!apiKey) {
 const genAI = new GoogleGenerativeAI(apiKey);
 
 // Select the Gemini image generation model
-// Using the most reliable and stable model for image generation
+// Using the appropriate model for image generation
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-pro-vision",
 });
 
 // Generation configuration (adjust if necessary according to the official documentation)
