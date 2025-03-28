@@ -40,28 +40,28 @@ export default function VisualCharacterCustomizer({
   onNext, 
   onPrev 
 }: VisualCharacterCustomizerProps) {
-  // State for tracking selected customizations with default values
-  const [selectedAccessories, setSelectedAccessories] = useState<string[]>(bookData.accessories || ["glasses"]);
-  const [selectedFacialFeatures, setSelectedFacialFeatures] = useState<string[]>(bookData.facialFeatures || ["freckles"]);
+  // State for tracking selected customizations
+  const [selectedAccessories, setSelectedAccessories] = useState<string[]>(bookData.accessories || []);
+  const [selectedFacialFeatures, setSelectedFacialFeatures] = useState<string[]>(bookData.facialFeatures || []);
   const [currentTab, setCurrentTab] = useState("style");
   const [characterPreview, setCharacterPreview] = useState("");
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      // Basic customization with default values
+      // Basic customization
       characterStyle: bookData.characterStyle || "cartoon",
-      hairStyle: bookData.hairStyle || "curly",
+      hairStyle: bookData.hairStyle || "short",
       skinTone: bookData.skinTone || "medium",
       
-      // Advanced customization with default values
-      hairColor: bookData.hairColor || "brown",
-      eyeColor: bookData.eyeColor || "blue",
-      clothingStyle: bookData.clothingStyle || "casual",
-      accessories: bookData.accessories || ["glasses"],
-      facialFeatures: bookData.facialFeatures || ["freckles"],
-      height: bookData.height || "average",
-      buildType: bookData.buildType || "average",
+      // Advanced customization
+      hairColor: bookData.hairColor || "",
+      eyeColor: bookData.eyeColor || "",
+      clothingStyle: bookData.clothingStyle || "",
+      accessories: bookData.accessories || [],
+      facialFeatures: bookData.facialFeatures || [],
+      height: bookData.height || "",
+      buildType: bookData.buildType || "",
     },
   });
 

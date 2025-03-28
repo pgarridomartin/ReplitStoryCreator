@@ -26,15 +26,15 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ChildInfo({ bookData, updateBookData, onNext }: ChildInfoProps) {
-  const [selectedInterests, setSelectedInterests] = useState<string[]>(bookData.interests || ["dinosaurs", "space", "adventure"]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(bookData.interests || []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      childName: bookData.childName || "Emma",
-      childAge: bookData.childAge || "3-5",
-      childGender: bookData.childGender || "girl",
-      interests: bookData.interests || ["dinosaurs", "space", "adventure"],
+      childName: bookData.childName || "",
+      childAge: bookData.childAge || "",
+      childGender: bookData.childGender || "",
+      interests: bookData.interests || [],
     },
   });
 

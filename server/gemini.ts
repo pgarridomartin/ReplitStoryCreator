@@ -16,9 +16,8 @@ if (!apiKey) {
 const genAI = new GoogleGenerativeAI(apiKey);
 
 // Select the Gemini image generation model
-// Using the appropriate model for image generation
 const model = genAI.getGenerativeModel({
-  model: "gemini-pro-vision",
+  model: "gemini-2.0-flash-exp-image-generation",
 });
 
 // Generation configuration (adjust if necessary according to the official documentation)
@@ -52,11 +51,8 @@ async function generateImage(prompt: string): Promise<string> {
       history: [],
     });
 
-    // Add more detailed instructions to the prompt
-    const enhancedPrompt = `${prompt}\n\nPlease provide an image that fits this description. The image should be high quality and appropriate for a children's book.`;
-
     // Send the prompt to the model and wait for the response
-    const result = await chatSession.sendMessage(enhancedPrompt);
+    const result = await chatSession.sendMessage(prompt);
 
     // Process response candidates to extract the image
     const candidates = result.response.candidates || [];
@@ -95,18 +91,7 @@ async function generateImage(prompt: string): Promise<string> {
     throw new Error("Gemini response doesn't contain any images.");
   } catch (error) {
     console.error("Error generating image:", error);
-    
-    // Improved error handling to capture more details
-    let errorMessage = "Unknown error";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-      // Add stack trace for better debugging
-      console.error("Stack trace:", error.stack);
-    } else {
-      errorMessage = String(error);
-    }
-    
-    throw new Error(`Error generating image: ${errorMessage}`);
+    throw new Error(`Error generating image: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -141,12 +126,19 @@ export async function generateImageWithGemini(prompt: string): Promise<string> {
 /**
  * Type definitions for image generation results
  */
-type ImageGenerationResult = {
-  success: boolean;
+type ImageGenerationSuccess = {
+  success: true;
   index: number;
-  url?: string;
-  error?: any;
+  url: string;
 };
+
+type ImageGenerationError = {
+  success: false;
+  index: number;
+  error: any;
+};
+
+type ImageGenerationResult = ImageGenerationSuccess | ImageGenerationError;
 
 /**
  * Generates multiple images for a visual story.
@@ -157,55 +149,32 @@ type ImageGenerationResult = {
 export async function generateVisualStoryImagesWithGemini(prompts: string[]): Promise<string[]> {
   console.log(`Generating ${prompts.length} images for visual story...`);
   
-  // Define fallback function for guaranteed string output
-  const getFallbackUrl = (index: number): string => {
-    return `https://images.unsplash.com/photo-1629414278888-abcdb8e0a904?w=800&auto=format&fit=crop&page=${index}`;
-  };
+  // Generate all images in parallel with fallback handling
+  const results: ImageGenerationResult[] = await Promise.all(
+    prompts.map(async (prompt, index) => {
+      try {
+        const imageUrl = await generateImageWithGemini(prompt);
+        console.log(`Successfully generated image ${index + 1}`);
+        return { success: true, index, url: imageUrl };
+      } catch (error) {
+        console.error(`Falling back to semantic image selection`);
+        // This is already within a try/catch, so we'll return a structured error
+        return { success: false, index, error };
+      }
+    })
+  );
   
-  // Process in batches to reduce parallel load
-  const BATCH_SIZE = 2;
-  const finalImageUrls: string[] = new Array(prompts.length).fill('').map((_, i) => getFallbackUrl(i));
-  
-  // Process prompts in batches to avoid overloading the API
-  for (let i = 0; i < prompts.length; i += BATCH_SIZE) {
-    const batchPrompts = prompts.slice(i, i + BATCH_SIZE);
-    console.log(`Generating batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(prompts.length/BATCH_SIZE)}`);
+  // Extract URLs from successful generations and handle failures
+  const imageUrls = prompts.map((_prompt, index) => {
+    const result = results.find(r => r.index === index);
+    if (result?.success) {
+      return result.url;
+    }
     
-    // Generate batch in parallel
-    const batchResults = await Promise.all(
-      batchPrompts.map(async (prompt, batchIndex) => {
-        const index = i + batchIndex;
-        try {
-          // Add retry logic for more reliability
-          let retries = 0;
-          const MAX_RETRIES = 2;
-          
-          while (retries <= MAX_RETRIES) {
-            try {
-              const imageUrl = await generateImageWithGemini(prompt);
-              console.log(`Successfully generated image ${index + 1}`);
-              // Update the final image URLs array directly
-              finalImageUrls[index] = imageUrl;
-              return { success: true, index };
-            } catch (error) {
-              retries++;
-              console.log(`Retry ${retries}/${MAX_RETRIES} for image ${index + 1}`);
-              // Small delay between retries
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-          }
-          
-          // If we get here, all retries failed - fallback already in place
-          console.error(`Falling back to semantic image selection for image ${index + 1} after ${MAX_RETRIES} retries`);
-          return { success: false, index };
-        } catch (error) {
-          console.error(`Falling back to semantic image selection for image ${index + 1}`);
-          return { success: false, index };
-        }
-      })
-    );
-  }
+    // Fallback URL for failed generations
+    return `https://images.unsplash.com/photo-1629414278888-abcdb8e0a904?w=800&auto=format&fit=crop&page=${index}`;
+  });
   
-  console.log(`Completed image generation: ${finalImageUrls.length} images produced`);
-  return finalImageUrls;
+  console.log(`Completed image generation: ${imageUrls.length} images produced`);
+  return imageUrls;
 }

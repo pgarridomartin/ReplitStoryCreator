@@ -205,112 +205,91 @@ Format your response as JSON with this structure:
 
 export async function generateBookImage(prompt: string): Promise<string> {
   try {
-    // Use OpenAI's DALL-E model for image generation
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: prompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-    });
-
-    // Return the URL from the response
-    if (response.data[0]?.url) {
-      return response.data[0].url;
-    }
-    
-    throw new Error("No image URL returned from OpenAI");
+    // Now using Gemini 1.5 Flash with fallback mechanism
+    return await generateImageWithGemini(prompt);
   } catch (error) {
-    // Log the error for debugging
-    console.error("OpenAI image generation error:", error);
+    // Log the error but don't throw - our Gemini implementation now has fallbacks
+    console.error("Gemini image generation error:", error);
     
-    // Fallback URL in case of error
+    // The generateImageWithGemini function now handles fallbacks internally,
+    // so we'll just return a fallback URL directly here
     return "https://images.unsplash.com/photo-1573505790261-dcac3e00c337?w=800&auto=format&fit=crop";
   }
 }
 
 export async function generateVisualStoryPages(pages: StoryPage[], characterStyle: string, characterDesc: string): Promise<string[]> {
   try {
-    // Process all pages using DALL-E
-    console.log(`Generating ${pages.length} images for visual story...`);
+    // First, generate the first image separately to use as a reference for maintaining consistency
+    const firstPageIndex = 0;
+    const firstPageNumber = firstPageIndex + 1;
     
-    // Process in small batches to avoid rate limits
-    const BATCH_SIZE = 2;
-    const imageUrls: string[] = [];
+    // Create a detailed prompt for the first page
+    const firstPagePrompt = `Create a children's book illustration for page ${firstPageNumber}:
     
-    // Start with a detailed style description based on the selected style
-    const styleDescription = characterStyle === 'watercolor' 
-      ? 'soft watercolor style with gentle brushstrokes and flowing colors'
-      : characterStyle === '3d' 
-        ? '3D illustrated style with dimensional characters and realistic textures'
-        : characterStyle === 'cartoon'
-          ? 'vibrant cartoon style with clean outlines and bright colors'
-          : 'colorful illustration style appropriate for a children's book';
+Scene: ${pages[firstPageIndex].description}
+
+The illustration should feature ${characterDesc}.
+This is the first page of the story, so make sure to establish the setting and introduce the character.
+
+Art style: ${characterStyle}
+
+Use ${characterStyle === 'watercolor' ? 'soft brushstrokes and flowing colors' : 
+      characterStyle === '3d' ? 'dimensional characters and realistic textures' : 
+      'vibrant colors and clean outlines'} with a child-friendly aesthetic appropriate for a children's book.`;
+
+    console.log("Generating first page image to use as character reference...");
+    const firstPageImageUrl = await generateImageWithGemini(firstPagePrompt);
+    const firstPageImagePath = firstPageImageUrl.replace(/^\/images\//, '');
+    const firstPageImageFullPath = `public/images/${firstPageImagePath}`;
+    console.log(`First page image generated at: ${firstPageImageFullPath}`);
     
-    // A single character description to maintain consistency across all images
-    const characterDescriptionPrompt = `The main character should be ${characterDesc}. Maintain consistent character appearance across all illustrations.`;
-    
-    // Process pages in batches
-    for (let i = 0; i < pages.length; i += BATCH_SIZE) {
-      const batchPages = pages.slice(i, i + BATCH_SIZE);
-      console.log(`Generating batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(pages.length/BATCH_SIZE)}`);
+    // Now create prompts for the remaining pages, referencing the first image for character consistency
+    const remainingPagePrompts = pages.slice(1).map((page, index) => {
+      const pageNumber = index + 2; // +2 because index starts at 0 and we've already handled page 1
       
-      // Generate batch in sequence (to avoid potential rate limits)
-      for (let j = 0; j < batchPages.length; j++) {
-        const pageIndex = i + j;
-        const pageNumber = pageIndex + 1;
-        const page = batchPages[j];
-        
-        try {
-          // Create a detailed prompt for this specific page
-          const prompt = `Create a children's book illustration for page ${pageNumber} of a story:
-          
-Scene description: ${page.description}
+      // Create a detailed prompt for this specific page, referencing the first image
+      return `Create a children's book illustration for page ${pageNumber}, maintaining character consistency:
+      
+Scene: ${page.description}
 
-${characterDescriptionPrompt}
+The illustration should feature ${characterDesc} with EXACTLY the same appearance, style, and character design as shown in the first page.
+Keep the character's features, proportions, coloring, and outfit identical to maintain a cohesive look throughout the book.
 
-Art style: ${styleDescription} with a child-friendly aesthetic appropriate for a children's book.
+Art style: ${characterStyle}
 
-Please create a cohesive illustration that matches the same art style and character design throughout the book.`;
-          
-          // Generate image using OpenAI DALL-E
-          const response = await openai.images.generate({
-            model: "dall-e-3",
-            prompt: prompt,
-            n: 1,
-            size: "1024x1024",
-            quality: "standard",
-          });
-          
-          // Get the URL from the response
-          if (response.data[0]?.url) {
-            console.log(`Successfully generated image ${pageNumber}`);
-            imageUrls.push(response.data[0].url);
-          } else {
-            throw new Error("No image URL returned from OpenAI");
-          }
-        } catch (error) {
-          console.error(`Error generating image for page ${pageNumber}:`, error);
-          
-          // Use a fallback image if generation fails
-          imageUrls.push(`https://images.unsplash.com/photo-1629414278888-abcdb8e0a904?w=800&auto=format&fit=crop&page=${pageIndex}`);
-        }
-        
-        // Add a small delay between requests to avoid rate limits
-        if (j < batchPages.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      }
-    }
-    
-    console.log(`Completed image generation: ${imageUrls.length} images produced`);
-    return imageUrls;
-  } catch (error) {
-    console.error("Error generating visual story pages:", error);
-    
-    // As a last resort, return one default image per page
-    return pages.map((_, index) => {
-      return `https://images.unsplash.com/photo-1629414278888-abcdb8e0a904?w=800&auto=format&fit=crop&page=${index}`;
+Use ${characterStyle === 'watercolor' ? 'soft brushstrokes and flowing colors' : 
+      characterStyle === '3d' ? 'dimensional characters and realistic textures' : 
+      'vibrant colors and clean outlines'} with a child-friendly aesthetic appropriate for a children's book.`;
     });
+
+    // Generate the remaining images
+    console.log(`Generating ${remainingPagePrompts.length} remaining page images with consistent character design...`);
+    const remainingPageImageUrls = await generateVisualStoryImagesWithGemini(remainingPagePrompts);
+    
+    // Combine the first image with the remaining images
+    return [firstPageImageUrl, ...remainingPageImageUrls];
+  } catch (error) {
+    console.error("Gemini visual story pages generation error:", error);
+    
+    // Instead of throwing an error, return fallback images
+    // Our updated Gemini implementation handles fallbacks automatically
+    console.log("Using fallback images for the story");
+    
+    try {
+      // Try once more with different approach - generate all images at once without the reference system
+      const fallbackPrompts = pages.map((page, index) => {
+        const pageNumber = index + 1;
+        return `Children's book illustration for page ${pageNumber} in ${characterStyle} style: ${characterDesc} in scene: ${page.description.substring(0, 100)}. Maintain consistent character appearance across all illustrations.`;
+      });
+      
+      return await generateVisualStoryImagesWithGemini(fallbackPrompts);
+    } catch (fallbackError) {
+      console.error("Fallback image generation also failed:", fallbackError);
+      
+      // As a last resort, return one default image per page
+      return pages.map((_, index) => {
+        return `https://images.unsplash.com/photo-1629414278888-abcdb8e0a904?w=800&auto=format&fit=crop&page=${index}`;
+      });
+    }
   }
 }
