@@ -84,24 +84,18 @@ export async function generateImageWithGemini(prompt: string): Promise<string> {
       // Using the image generation feature as per the documentation
       // https://ai.google.dev/gemini-api/docs/image-generation#node.js
 
-      // Create the request to the Imagen API
-      // Based on https://ai.google.dev/tutorials/rest_quickstart
-      const result = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent", {
+      // Create the request to directly generate an image using Gemini 2.0
+      // Based on the example code using the newer model for image generation
+      const result = await fetch("https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash-exp-image-generation:generateContent", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-goog-api-key": process.env.GEMINI_API_KEY || ""
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Generate a creative, detailed description for creating a children's book illustration based on this prompt: ${enhancedPrompt}. 
-              Focus on visual details that would help an artist create this scene.`
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 1024
+          contents: enhancedPrompt,
+          config: {
+            responseModalities: ["Text", "Image"]
           }
         })
       });
@@ -114,42 +108,58 @@ export async function generateImageWithGemini(prompt: string): Promise<string> {
       // Parse the JSON response
       const imageData = await result.json();
 
-      // Fallback URL for Imagen - if not using actual generation, we'll get descriptive text from Gemini
-      // and use that with one of the fallback images to show the functionality
-      console.log("Using alternative method since image generation isn't fully available");
-
-      console.log("Successfully generated image description with Gemini API");
-
-      // Extract the description from the Gemini response
-      const description = imageData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      console.log("Generated description:", description.substring(0, 150) + "...");
-
-      // Use the description to select a semantically matching fallback image
-      // until direct image generation is available
+      console.log("Successfully received response from Gemini API");
+      
+      // Look for image data in the response
+      if (imageData?.candidates?.[0]?.content?.parts) {
+        for (const part of imageData.candidates[0].content.parts) {
+          // Check for text description
+          if (part.text) {
+            console.log("Received text description:", part.text.substring(0, 150) + "...");
+          }
+          
+          // Check for inline image data
+          if (part.inlineData && part.inlineData.data) {
+            console.log("Found image data in the response");
+            const imageBase64 = part.inlineData.data;
+            const mimeType = part.inlineData.mimeType || 'image/png';
+            
+            // Create a data URL from the base64 data
+            const dataUrl = `data:${mimeType};base64,${imageBase64}`;
+            console.log("Successfully generated image with Gemini API");
+            return dataUrl;
+          }
+        }
+      }
+      
+      // If no image was found in the response, use semantic matching for fallback
+      console.log("No image data found in response, using semantic matching");
+      
+      // Extract any text description to help select an appropriate fallback
+      const description = imageData?.candidates?.[0]?.content?.parts?.[0]?.text || enhancedPrompt;
       const descriptionLower = description.toLowerCase();
       let semanticIndex = 0;
-
-      // More refined content matching based on the AI-generated description
-      if (descriptionLower.includes("forest") || descriptionLower.includes("trees") || descriptionLower.includes("nature") || descriptionLower.includes("woods")) {
+      
+      // Content matching based on the description or prompt
+      if (descriptionLower.includes("forest") || descriptionLower.includes("trees")) {
         semanticIndex = 2; // Forest scene
-      } else if (descriptionLower.includes("ocean") || descriptionLower.includes("sea") || descriptionLower.includes("water") || descriptionLower.includes("beach")) {
+      } else if (descriptionLower.includes("ocean") || descriptionLower.includes("sea")) {
         semanticIndex = 5; // Underwater scene
-      } else if (descriptionLower.includes("space") || descriptionLower.includes("stars") || descriptionLower.includes("planet") || descriptionLower.includes("galaxy")) {
+      } else if (descriptionLower.includes("space") || descriptionLower.includes("stars")) {
         semanticIndex = 6; // Space scene
-      } else if (descriptionLower.includes("castle") || descriptionLower.includes("palace") || descriptionLower.includes("kingdom") || descriptionLower.includes("fairy tale")) {
+      } else if (descriptionLower.includes("castle") || descriptionLower.includes("palace")) {
         semanticIndex = 4; // Fairy tale castle
-      } else if (descriptionLower.includes("animal") || descriptionLower.includes("pet") || descriptionLower.includes("creature")) {
+      } else if (descriptionLower.includes("animal") || descriptionLower.includes("pet")) {
         semanticIndex = 9; // Animal scene
-      } else if (descriptionLower.includes("adventure") || descriptionLower.includes("journey") || descriptionLower.includes("quest")) {
+      } else if (descriptionLower.includes("adventure") || descriptionLower.includes("journey")) {
         semanticIndex = 3; // Adventure scene
-      } else if (descriptionLower.includes("magic") || descriptionLower.includes("wizard") || descriptionLower.includes("spell") || descriptionLower.includes("mystical")) {
+      } else if (descriptionLower.includes("magic") || descriptionLower.includes("wizard")) {
         semanticIndex = 10; // Magic scene
       } else {
-        // Use a basic algorithm to select an image based on the length of the description
+        // Use a basic algorithm as last resort
         semanticIndex = Math.abs(description.length % demoBookImages.length);
       }
-
-      // Here we would use actual image generation in the future
+      
       return demoBookImages[semanticIndex];
     } catch (imageError) {
       console.error("Error with image generation API:", imageError);
