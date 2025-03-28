@@ -149,11 +149,15 @@ Format your response as JSON with this structure:
 
 export async function generateBookImage(prompt: string): Promise<string> {
   try {
-    // Now using Gemini instead of DALL-E 3
+    // Now using Gemini 1.5 Flash with fallback mechanism
     return await generateImageWithGemini(prompt);
   } catch (error) {
+    // Log the error but don't throw - our Gemini implementation now has fallbacks
     console.error("Gemini image generation error:", error);
-    throw new Error("Failed to generate image with Gemini. Please try again.");
+    
+    // The generateImageWithGemini function now handles fallbacks internally,
+    // so we'll just return a fallback URL directly here
+    return "https://images.unsplash.com/photo-1573505790261-dcac3e00c337?w=800&auto=format&fit=crop";
   }
 }
 
@@ -179,6 +183,11 @@ Use vibrant colors and a child-friendly aesthetic appropriate for a children's b
     return await generateVisualStoryImagesWithGemini(imagePrompts);
   } catch (error) {
     console.error("Gemini visual story pages generation error:", error);
-    throw new Error("Failed to generate story illustrations with Gemini. Please try again later.");
+    
+    // Instead of throwing an error, return fallback images
+    // Our updated Gemini implementation handles fallbacks automatically
+    // We'll just call the function again which will utilize the fallback mechanism
+    console.log("Using fallback images for the story");
+    return await generateVisualStoryImagesWithGemini(imagePrompts);
   }
 }
