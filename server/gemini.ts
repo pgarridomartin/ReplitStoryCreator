@@ -61,10 +61,10 @@ export async function generateImageWithGemini(prompt: string): Promise<string> {
         artStyle = styleMatch[1].toLowerCase();
       }
     }
-    
+
     // Console log for debugging
     console.log(`Generating image with style: ${artStyle} for prompt: ${prompt}`);
-    
+
     // Create enhanced prompt for image generation
     const enhancedPrompt = `Children's book illustration for: ${prompt}
       The illustration style should be ${artStyle} style with ${
@@ -75,15 +75,15 @@ export async function generateImageWithGemini(prompt: string): Promise<string> {
       Focus on whimsical details and a child-friendly aesthetic.
       Make the image appropriate for a children's book with a cheerful, positive mood.
       Create a high-quality, detailed image suitable for a professional children's book.`;
-    
+
     // We no longer need to initialize the Gemini model for image generation
     // as we're directly using the REST API endpoint
-    
+
     // Generate the image using the Imagen API
     try {
       // Using the image generation feature as per the documentation
       // https://ai.google.dev/gemini-api/docs/image-generation#node.js
-      
+
       // Create the request to the Imagen API
       // Based on https://ai.google.dev/tutorials/rest_quickstart
       const result = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent", {
@@ -105,30 +105,30 @@ export async function generateImageWithGemini(prompt: string): Promise<string> {
           }
         })
       });
-      
+
       if (!result.ok) {
         console.error(`API request failed with status ${result.status}: ${await result.text()}`);
         throw new Error(`API request failed with status ${result.status}`);
       }
-      
+
       // Parse the JSON response
       const imageData = await result.json();
-      
+
       // Fallback URL for Imagen - if not using actual generation, we'll get descriptive text from Gemini
       // and use that with one of the fallback images to show the functionality
       console.log("Using alternative method since image generation isn't fully available");
-      
+
       console.log("Successfully generated image description with Gemini API");
-      
+
       // Extract the description from the Gemini response
       const description = imageData?.candidates?.[0]?.content?.parts?.[0]?.text || "";
       console.log("Generated description:", description.substring(0, 150) + "...");
-      
+
       // Use the description to select a semantically matching fallback image
       // until direct image generation is available
       const descriptionLower = description.toLowerCase();
       let semanticIndex = 0;
-      
+
       // More refined content matching based on the AI-generated description
       if (descriptionLower.includes("forest") || descriptionLower.includes("trees") || descriptionLower.includes("nature") || descriptionLower.includes("woods")) {
         semanticIndex = 2; // Forest scene
@@ -148,7 +148,7 @@ export async function generateImageWithGemini(prompt: string): Promise<string> {
         // Use a basic algorithm to select an image based on the length of the description
         semanticIndex = Math.abs(description.length % demoBookImages.length);
       }
-      
+
       // Here we would use actual image generation in the future
       return demoBookImages[semanticIndex];
     } catch (imageError) {
@@ -158,14 +158,14 @@ export async function generateImageWithGemini(prompt: string): Promise<string> {
   } catch (e: unknown) {
     const error = e as Error;
     console.error("Error generating image with Gemini:", error);
-    
+
     // Use a fallback image relevant to the prompt content when image generation fails
     console.log("Falling back to semantic image selection");
-    
+
     // Try to match the prompt to a relevant image based on content
     let imageIndex = 0;
     const promptLower = prompt.toLowerCase();
-    
+
     if (promptLower.includes("forest") || promptLower.includes("trees") || promptLower.includes("woods") || promptLower.includes("nature")) {
       imageIndex = 2; // Magical forest scene
     } else if (promptLower.includes("ocean") || promptLower.includes("sea") || promptLower.includes("underwater") || promptLower.includes("fish")) {
@@ -184,7 +184,7 @@ export async function generateImageWithGemini(prompt: string): Promise<string> {
       // Use a basic algorithm to select an image based on the length of the prompt
       imageIndex = Math.abs(prompt.length % demoBookImages.length);
     }
-    
+
     // Return a fallback image from our collection
     const fallbackImage = demoBookImages[imageIndex];
     imageCounter++;
@@ -220,17 +220,17 @@ export async function generateVisualStoryImagesWithGemini(
     const maxConcurrent = 2; // Limited concurrency for stability
     const images: string[] = [];
     const usedFallbackIndices = new Set<number>(); // Track used fallback images only
-    
+
     console.log(`Starting image generation for ${prompts.length} pages`);
-    
+
     // Generate images in batches to control concurrency
     for (let i = 0; i < prompts.length; i += maxConcurrent) {
       console.log(`Generating batch ${Math.floor(i/maxConcurrent) + 1} of ${Math.ceil(prompts.length/maxConcurrent)}`);
-      
+
       const batch = prompts.slice(i, i + maxConcurrent);
       const batchPromises = batch.map((prompt, batchIndex) => {
         const promptIndex = i + batchIndex;
-        
+
         // Generate image with the prompt
         return generateImageWithGemini(prompt)
           .then(imageUrl => {
@@ -242,10 +242,10 @@ export async function generateVisualStoryImagesWithGemini(
             return { success: false, index: promptIndex, error } as ImageGenerationError;
           });
       });
-      
+
       // Wait for all images in this batch to complete
       const batchResults = await Promise.all(batchPromises);
-      
+
       // Process the results with proper type checking
       for (const result of batchResults) {
         if (result.success) {
@@ -255,7 +255,7 @@ export async function generateVisualStoryImagesWithGemini(
           // For error cases, generate a semantically appropriate fallback
           const promptLower = prompts[result.index].toLowerCase();
           let fallbackIndex: number;
-          
+
           // Match content to an appropriate fallback image
           if (promptLower.includes("forest") || promptLower.includes("trees")) {
             fallbackIndex = 2; // Forest scene
@@ -269,7 +269,7 @@ export async function generateVisualStoryImagesWithGemini(
             // Distribute evenly across available images
             fallbackIndex = result.index % demoBookImages.length;
           }
-          
+
           // Ensure we don't reuse fallback images if possible
           if (usedFallbackIndices.has(fallbackIndex) && usedFallbackIndices.size < demoBookImages.length - 1) {
             // Find an unused fallback index
@@ -279,19 +279,19 @@ export async function generateVisualStoryImagesWithGemini(
             }
             fallbackIndex = newIndex;
           }
-          
+
           // Track this fallback image as used
           usedFallbackIndices.add(fallbackIndex);
           images[result.index] = demoBookImages[fallbackIndex];
         }
       }
-      
+
       // Add a small delay between batches to avoid rate limiting
       if (i + maxConcurrent < prompts.length) {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
-    
+
     // Make sure all slots in the images array are filled
     for (let i = 0; i < prompts.length; i++) {
       if (!images[i]) {
@@ -300,13 +300,13 @@ export async function generateVisualStoryImagesWithGemini(
         images[i] = demoBookImages[fallbackIndex];
       }
     }
-    
+
     console.log(`Completed image generation: ${images.length} images produced`);
     return images;
   } catch (e: unknown) {
     const error = e as Error;
     console.error("Error in overall image generation process:", error);
-    
+
     // Fall back to a complete set of fallback images
     console.log("Using complete fallback image set");
     return prompts.map((prompt, index) => {
@@ -324,7 +324,7 @@ export async function generateVisualStoryImagesWithGemini(
         // Distribute across available images
         imageIndex = index % demoBookImages.length;
       }
-      
+
       return demoBookImages[imageIndex];
     });
   }
