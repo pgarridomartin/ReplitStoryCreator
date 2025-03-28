@@ -1,10 +1,21 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import path from "path";
+import fs from "fs";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Ensure the public/images directory exists for storing generated images
+const imagesDir = path.join(process.cwd(), "public", "images");
+if (!fs.existsSync(imagesDir)) {
+  fs.mkdirSync(imagesDir, { recursive: true });
+}
+
+// Serve static files from the public directory
+app.use(express.static(path.join(process.cwd(), "public")));
 
 app.use((req, res, next) => {
   const start = Date.now();
