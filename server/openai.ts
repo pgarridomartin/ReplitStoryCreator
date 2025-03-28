@@ -219,18 +219,41 @@ export async function generateBookImage(prompt: string): Promise<string> {
 
 export async function generateVisualStoryPages(pages: StoryPage[], characterStyle: string, characterDesc: string): Promise<string[]> {
   try {
-    // Create prompts for each page
-    const imagePrompts = pages.map((page, index) => {
-      const isFirstPage = index === 0;
-      const pageNumber = index + 1;
+    // First, generate the first image separately to use as a reference for maintaining consistency
+    const firstPageIndex = 0;
+    const firstPageNumber = firstPageIndex + 1;
+    
+    // Create a detailed prompt for the first page
+    const firstPagePrompt = `Create a children's book illustration for page ${firstPageNumber}:
+    
+Scene: ${pages[firstPageIndex].description}
+
+The illustration should feature ${characterDesc}.
+This is the first page of the story, so make sure to establish the setting and introduce the character.
+
+Art style: ${characterStyle}
+
+Use ${characterStyle === 'watercolor' ? 'soft brushstrokes and flowing colors' : 
+      characterStyle === '3d' ? 'dimensional characters and realistic textures' : 
+      'vibrant colors and clean outlines'} with a child-friendly aesthetic appropriate for a children's book.`;
+
+    console.log("Generating first page image to use as character reference...");
+    const firstPageImageUrl = await generateImageWithGemini(firstPagePrompt);
+    const firstPageImagePath = firstPageImageUrl.replace(/^\/images\//, '');
+    const firstPageImageFullPath = `public/images/${firstPageImagePath}`;
+    console.log(`First page image generated at: ${firstPageImageFullPath}`);
+    
+    // Now create prompts for the remaining pages, referencing the first image for character consistency
+    const remainingPagePrompts = pages.slice(1).map((page, index) => {
+      const pageNumber = index + 2; // +2 because index starts at 0 and we've already handled page 1
       
-      // Create a detailed prompt for this specific page
-      return `Create a children's book illustration for page ${pageNumber}:
+      // Create a detailed prompt for this specific page, referencing the first image
+      return `Create a children's book illustration for page ${pageNumber}, maintaining character consistency:
       
 Scene: ${page.description}
 
-The illustration should feature ${characterDesc}.
-${isFirstPage ? "This is the first page of the story, so make sure to establish the setting and introduce the character." : ""}
+The illustration should feature ${characterDesc} with EXACTLY the same appearance, style, and character design as shown in the first page.
+Keep the character's features, proportions, coloring, and outfit identical to maintain a cohesive look throughout the book.
 
 Art style: ${characterStyle}
 
@@ -239,8 +262,12 @@ Use ${characterStyle === 'watercolor' ? 'soft brushstrokes and flowing colors' :
       'vibrant colors and clean outlines'} with a child-friendly aesthetic appropriate for a children's book.`;
     });
 
-    // Use Gemini to generate all the images
-    return await generateVisualStoryImagesWithGemini(imagePrompts);
+    // Generate the remaining images
+    console.log(`Generating ${remainingPagePrompts.length} remaining page images with consistent character design...`);
+    const remainingPageImageUrls = await generateVisualStoryImagesWithGemini(remainingPagePrompts);
+    
+    // Combine the first image with the remaining images
+    return [firstPageImageUrl, ...remainingPageImageUrls];
   } catch (error) {
     console.error("Gemini visual story pages generation error:", error);
     
@@ -249,10 +276,10 @@ Use ${characterStyle === 'watercolor' ? 'soft brushstrokes and flowing colors' :
     console.log("Using fallback images for the story");
     
     try {
-      // Try once more with different approach
-      const fallbackPrompts = pages.map((page) => {
-        // Create a shorter, simplified prompt but still maintain art style reference
-        return `Children's book illustration in ${characterStyle} style: ${page.description.substring(0, 100)}. Art style: ${characterStyle}`;
+      // Try once more with different approach - generate all images at once without the reference system
+      const fallbackPrompts = pages.map((page, index) => {
+        const pageNumber = index + 1;
+        return `Children's book illustration for page ${pageNumber} in ${characterStyle} style: ${characterDesc} in scene: ${page.description.substring(0, 100)}. Maintain consistent character appearance across all illustrations.`;
       });
       
       return await generateVisualStoryImagesWithGemini(fallbackPrompts);
