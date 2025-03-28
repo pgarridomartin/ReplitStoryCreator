@@ -50,7 +50,24 @@ export default function StorySettings({
   });
 
   const onSubmit = (values: FormValues) => {
+    // Update the book data with form values
     updateBookData(values);
+    
+    // Check if we have all required fields before proceeding to generate
+    if (!bookData.childName || !bookData.childAge || !bookData.childGender || 
+        !bookData.characterStyle || !bookData.hairStyle || !bookData.skinTone || 
+        !values.storyTheme || !values.storyGoal) {
+      // Display form errors for any missing fields
+      if (!values.storyTheme) {
+        form.setError("storyTheme", { message: "Story theme is required" });
+      }
+      if (!values.storyGoal) {
+        form.setError("storyGoal", { message: "Story goal is required" });
+      }
+      return;
+    }
+    
+    // If all validation passes, proceed to next step
     onNext();
   };
 

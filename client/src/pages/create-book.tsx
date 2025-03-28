@@ -44,17 +44,33 @@ export default function CreateBook() {
 
   const generateStoryMutation = useMutation({
     mutationFn: async (data: BookGenerationRequest) => {
-      const res = await apiRequest('POST', '/api/books/generate', data);
-      return res.json();
+      try {
+        const res = await apiRequest('POST', '/api/books/generate', data);
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to generate story. Please try again.");
+        }
+        
+        return res.json();
+      } catch (error) {
+        console.error("Story generation error:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       setGeneratedStory(data);
+      toast({
+        title: "Story generated successfully!",
+        description: "Your personalized story has been created.",
+        variant: "default",
+      });
       nextStep();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error generating story",
-        description: error.message || "Please try again later",
+        description: error.message || "Please check all fields and try again later",
         variant: "destructive",
       });
     }

@@ -104,6 +104,10 @@ export default function BookPreview({
                         src={previewPage === 0 ? generatedStory.coverImageUrl : generatedStory.pages![previewPage - 1].imageUrl} 
                         alt={`Page ${previewPage}`} 
                         className="w-full max-w-md h-64 object-contain rounded-lg" 
+                        onError={(e) => {
+                          // If image fails to load, replace with a fallback
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1516627145497-ae6968895b40?w=800&auto=format&fit=crop";
+                        }}
                       />
                       <button 
                         onClick={() => setPreviewPage(prev => Math.max(0, prev - 1))}
@@ -148,6 +152,10 @@ export default function BookPreview({
                             setPreviewPage(0);
                             setShowFullBook(true);
                           }}
+                          onError={(e) => {
+                            // If image fails to load, replace with a fallback
+                            e.currentTarget.src = "https://images.unsplash.com/photo-1516627145497-ae6968895b40?w=800&auto=format&fit=crop";
+                          }}
                         />
                       </div>
                       {generatedStory.previewImages.slice(0, 2).map((img, index) => (
@@ -160,6 +168,10 @@ export default function BookPreview({
                             onClick={() => {
                               setPreviewPage(index + 1);
                               setShowFullBook(true);
+                            }}
+                            onError={(e) => {
+                              // If image fails to load, replace with a fallback
+                              e.currentTarget.src = "https://images.unsplash.com/photo-1516627145497-ae6968895b40?w=800&auto=format&fit=crop";
                             }}
                           />
                         </div>
@@ -188,7 +200,11 @@ export default function BookPreview({
               <img 
                 src={generatedStory.coverImageUrl} 
                 alt="Book cover preview" 
-                className="w-full h-40 object-cover rounded-lg shadow-md" 
+                className="w-full h-40 object-cover rounded-lg shadow-md"
+                onError={(e) => {
+                  // If image fails to load, replace with a fallback
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1516627145497-ae6968895b40?w=800&auto=format&fit=crop";
+                }}
               />
             </div>
             {generatedStory.previewImages.slice(0, 2).map((img, index) => (
@@ -197,7 +213,11 @@ export default function BookPreview({
                 <img 
                   src={img} 
                   alt={`Page ${index + 1} preview`} 
-                  className="w-full h-40 object-cover rounded-lg shadow-md" 
+                  className="w-full h-40 object-cover rounded-lg shadow-md"
+                  onError={(e) => {
+                    // If image fails to load, replace with a fallback
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1516627145497-ae6968895b40?w=800&auto=format&fit=crop";
+                  }}
                 />
               </div>
             ))}
