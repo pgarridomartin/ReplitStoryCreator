@@ -50,24 +50,31 @@ export default function StorySettings({
   });
 
   const onSubmit = (values: FormValues) => {
-    // Update the book data with form values
+    // First update the book data with form values
     updateBookData(values);
     
-    // Check if we have all required fields before proceeding to generate
-    if (!bookData.childName || !bookData.childAge || !bookData.childGender || 
-        !bookData.characterStyle || !bookData.hairStyle || !bookData.skinTone || 
-        !values.storyTheme || !values.storyGoal) {
-      // Display form errors for any missing fields
-      if (!values.storyTheme) {
+    // Check if we have all required fields in the updated bookData
+    // We need to use merged values from bookData and current form values
+    const mergedData = { ...bookData, ...values };
+    
+    if (!mergedData.childName || !mergedData.childAge || !mergedData.childGender || 
+        !mergedData.characterStyle || !mergedData.hairStyle || !mergedData.skinTone || 
+        !mergedData.storyTheme || !mergedData.storyGoal) {
+      
+      // Display form errors for the fields in this form
+      if (!mergedData.storyTheme) {
         form.setError("storyTheme", { message: "Story theme is required" });
       }
-      if (!values.storyGoal) {
+      if (!mergedData.storyGoal) {
         form.setError("storyGoal", { message: "Story goal is required" });
       }
+      
+      console.log("Validation failed, missing required fields", mergedData);
       return;
     }
     
     // If all validation passes, proceed to next step
+    console.log("All validation passed, generating story with data:", mergedData);
     onNext();
   };
 

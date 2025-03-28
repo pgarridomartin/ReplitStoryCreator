@@ -73,6 +73,15 @@ export default function CharacterCustomization({
       facialFeatures: selectedFacialFeatures,
     };
     
+    console.log("Submitting character customization with data:", updatedValues);
+    
+    // Set empty string values to undefined to avoid issues in validation
+    Object.keys(updatedValues).forEach(key => {
+      if (updatedValues[key] === '') {
+        updatedValues[key] = undefined;
+      }
+    });
+    
     updateBookData(updatedValues);
     onNext();
   };

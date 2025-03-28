@@ -86,9 +86,24 @@ export async function generateImageWithGemini(prompt: string): Promise<string> {
       imageIndex = Math.abs(prompt.length % demoBookImages.length);
     }
     
+    // Extract the character style from the prompt if it's specified
+    let artStyle = "cartoon";
+    if (promptLower.includes("art style:")) {
+      const styleMatch = prompt.match(/art style: (\w+)/i);
+      if (styleMatch && styleMatch[1]) {
+        artStyle = styleMatch[1].toLowerCase();
+      }
+    }
+    
+    // Console log for debugging
+    console.log(`Generating image with style: ${artStyle} for prompt: ${prompt}`);
+    
     const result = await model.generateContent(`Generate a children's book illustration for: ${prompt}. 
-      Describe it in vivid detail that could be used by an artist to draw it. 
-      Focus on bright colors, whimsical details, and a child-friendly style.
+      Describe it in vivid detail that could be used by an artist to draw it.
+      The illustration style should be ${artStyle} style with ${artStyle === 'watercolor' ? 'soft brushstrokes and flowing colors' : 
+        artStyle === '3d' ? 'dimensional characters and realistic textures' : 
+        'bright colors and clean outlines'}.
+      Focus on whimsical details and a child-friendly aesthetic.
       Make the image appropriate for a children's book with a cheerful, positive mood.`);
 
     const response = result.response;

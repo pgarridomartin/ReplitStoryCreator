@@ -225,14 +225,18 @@ export async function generateVisualStoryPages(pages: StoryPage[], characterStyl
       const pageNumber = index + 1;
       
       // Create a detailed prompt for this specific page
-      return `Create a ${characterStyle} style children's book illustration for page ${pageNumber}:
+      return `Create a children's book illustration for page ${pageNumber}:
       
 Scene: ${page.description}
 
 The illustration should feature ${characterDesc}.
 ${isFirstPage ? "This is the first page of the story, so make sure to establish the setting and introduce the character." : ""}
 
-Use vibrant colors and a child-friendly aesthetic appropriate for a children's book.`;
+Art style: ${characterStyle}
+
+Use ${characterStyle === 'watercolor' ? 'soft brushstrokes and flowing colors' : 
+      characterStyle === '3d' ? 'dimensional characters and realistic textures' : 
+      'vibrant colors and clean outlines'} with a child-friendly aesthetic appropriate for a children's book.`;
     });
 
     // Use Gemini to generate all the images
@@ -247,8 +251,8 @@ Use vibrant colors and a child-friendly aesthetic appropriate for a children's b
     try {
       // Try once more with different approach
       const fallbackPrompts = pages.map((page) => {
-        // Create a shorter, simplified prompt
-        return `Children's book illustration: ${page.description.substring(0, 100)}`;
+        // Create a shorter, simplified prompt but still maintain art style reference
+        return `Children's book illustration in ${characterStyle} style: ${page.description.substring(0, 100)}. Art style: ${characterStyle}`;
       });
       
       return await generateVisualStoryImagesWithGemini(fallbackPrompts);
