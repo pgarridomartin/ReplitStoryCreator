@@ -1,0 +1,211 @@
+12:07:10 PM [express] POST /api/books/generate 400 in 11ms :: {"message":"Validation error: Story the…
+Generating image with style: cartoon for prompt: Book cover for "Lucia's Magical Dinosaur Adventure", a children's book. The main character is Lucia, a girl with long hair and tan skin tone. Style: cartoon.
+Error with image generation API: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5682:19)
+    at successSteps (node:internal/deps/undici/undici:5663:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4561:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async consumeBody (node:internal/deps/undici/undici:5672:7)
+    at async generateImageWithGemini (/home/runner/workspace/server/gemini.ts:104:25)
+    at async generateBookImage (/home/runner/workspace/server/openai.ts:209:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:42:29)
+Error generating image with Gemini: Error: Image generation API failed
+    at generateImageWithGemini (/home/runner/workspace/server/gemini.ts:117:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async generateBookImage (/home/runner/workspace/server/openai.ts:209:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:42:29)
+Falling back to semantic image selection
+Starting image generation for 6 pages
+Generating batch 1 of 3
+Generating image with style: cartoon for prompt: Create a children's book illustration for page 1:
+      
+Scene: Lucia is sitting cross-legged on the wooden floor of a cozy attic, surrounded by dust particles floating in the sunlight. She's holding an ancient-looking book with a sparkling cover that glows faintly. Around her are boxes and old toys.
+
+The illustration should feature Lucia, a girl with long hair and tan skin tone.
+This is the first page of the story, so make sure to establish the setting and introduce the character.
+
+Art style: cartoon
+
+Use vibrant colors and clean outlines with a child-friendly aesthetic appropriate for a children's book.
+Generating image with style: cartoon for prompt: Create a children's book illustration for page 2:
+      
+Scene: A small, green cartoon dragon with big, kind eyes is hovering above the book. Lucia looks surprised but excited. Drago has a gentle smile and sparkles around him, while the book's pages show illustrations of dinosaur eggs.
+
+The illustration should feature Lucia, a girl with long hair and tan skin tone.
+
+
+Art style: cartoon
+
+Use vibrant colors and clean outlines with a child-friendly aesthetic appropriate for a children's book.
+Error with image generation API: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5682:19)
+    at successSteps (node:internal/deps/undici/undici:5663:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4561:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async consumeBody (node:internal/deps/undici/undici:5672:7)
+    at async generateImageWithGemini (/home/runner/workspace/server/gemini.ts:104:25)
+    at async Promise.all (index 0)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Error generating image with Gemini: Error: Image generation API failed
+    at generateImageWithGemini (/home/runner/workspace/server/gemini.ts:117:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Promise.all (index 0)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Falling back to semantic image selection
+Successfully generated image 1
+Error with image generation API: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5682:19)
+    at successSteps (node:internal/deps/undici/undici:5663:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4561:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async consumeBody (node:internal/deps/undici/undici:5672:7)
+    at async generateImageWithGemini (/home/runner/workspace/server/gemini.ts:104:25)
+    at async Promise.all (index 1)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Error generating image with Gemini: Error: Image generation API failed
+    at generateImageWithGemini (/home/runner/workspace/server/gemini.ts:117:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Promise.all (index 1)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Falling back to semantic image selection
+Successfully generated image 2
+Generating batch 2 of 3
+Generating image with style: cartoon for prompt: Create a children's book illustration for page 3:
+      
+Scene: Lucia stands wide-eyed in a vibrant, lush prehistoric jungle with towering trees and different dinosaurs peeping through the foliage. Drago flies alongside her, guiding the way with an excited expression.
+
+The illustration should feature Lucia, a girl with long hair and tan skin tone.
+
+
+Art style: cartoon
+
+Use vibrant colors and clean outlines with a child-friendly aesthetic appropriate for a children's book.
+Generating image with style: cartoon for prompt: Create a children's book illustration for page 4:
+      
+Scene: Lucia and Drago stand talking to a friendly Triceratops with a broad smile. The clearing is bright and cheerful, with flowers and a gentle breeze. The mischievous pterodactyl can be seen sneaking in the background.
+
+The illustration should feature Lucia, a girl with long hair and tan skin tone.
+
+
+Art style: cartoon
+
+Use vibrant colors and clean outlines with a child-friendly aesthetic appropriate for a children's book.
+Error with image generation API: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5682:19)
+    at successSteps (node:internal/deps/undici/undici:5663:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4561:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async consumeBody (node:internal/deps/undici/undici:5672:7)
+    at async generateImageWithGemini (/home/runner/workspace/server/gemini.ts:104:25)
+    at async Promise.all (index 1)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Error generating image with Gemini: Error: Image generation API failed
+    at generateImageWithGemini (/home/runner/workspace/server/gemini.ts:117:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Promise.all (index 1)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Falling back to semantic image selection
+Successfully generated image 4
+Error with image generation API: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5682:19)
+    at successSteps (node:internal/deps/undici/undici:5663:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4561:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async consumeBody (node:internal/deps/undici/undici:5672:7)
+    at async generateImageWithGemini (/home/runner/workspace/server/gemini.ts:104:25)
+    at async Promise.all (index 0)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Error generating image with Gemini: Error: Image generation API failed
+    at generateImageWithGemini (/home/runner/workspace/server/gemini.ts:117:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Promise.all (index 0)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Falling back to semantic image selection
+Successfully generated image 3
+Generating batch 3 of 3
+Generating image with style: cartoon for prompt: Create a children's book illustration for page 5:
+      
+Scene: Lucia, with a determined yet gentle face, recites magic words while holding the glowing book. The pterodactyl, looking amused, gently places the egg back from its beak onto a soft nest. Drago claps joyfully.
+
+The illustration should feature Lucia, a girl with long hair and tan skin tone.
+
+
+Art style: cartoon
+
+Use vibrant colors and clean outlines with a child-friendly aesthetic appropriate for a children's book.
+Generating image with style: cartoon for prompt: Create a children's book illustration for page 6:
+      
+Scene: Lucia stands at the magical portal of a shimmering page, waving goodbye to her dinosaur friends with a big smile. Drago gives a cheerful salute. As she closes the book, sparkles surround her, signaling a sense of magic and newfound friendship.
+
+The illustration should feature Lucia, a girl with long hair and tan skin tone.
+
+
+Art style: cartoon
+
+Use vibrant colors and clean outlines with a child-friendly aesthetic appropriate for a children's book.
+Error with image generation API: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5682:19)
+    at successSteps (node:internal/deps/undici/undici:5663:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4561:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async consumeBody (node:internal/deps/undici/undici:5672:7)
+    at async generateImageWithGemini (/home/runner/workspace/server/gemini.ts:104:25)
+    at async Promise.all (index 0)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Error generating image with Gemini: Error: Image generation API failed
+    at generateImageWithGemini (/home/runner/workspace/server/gemini.ts:117:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Promise.all (index 0)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Falling back to semantic image selection
+Successfully generated image 5
+Error with image generation API: SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at parseJSONFromBytes (node:internal/deps/undici/undici:5682:19)
+    at successSteps (node:internal/deps/undici/undici:5663:27)
+    at fullyReadBody (node:internal/deps/undici/undici:4561:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async consumeBody (node:internal/deps/undici/undici:5672:7)
+    at async generateImageWithGemini (/home/runner/workspace/server/gemini.ts:104:25)
+    at async Promise.all (index 1)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Error generating image with Gemini: Error: Image generation API failed
+    at generateImageWithGemini (/home/runner/workspace/server/gemini.ts:117:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Promise.all (index 1)
+    at async generateVisualStoryImagesWithGemini (/home/runner/workspace/server/gemini.ts:208:28)
+    at async generateVisualStoryPages (/home/runner/workspace/server/openai.ts:243:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:45:29)
+Falling back to semantic image selection
+Successfully generated image 6
+Completed image generation: 6 images produced
+12:07:27 PM [express] POST /api/books/generate 200 in 12547ms :: {"bookId":1,"title":"Lucia's Magical…
+       
