@@ -186,8 +186,23 @@ Use vibrant colors and a child-friendly aesthetic appropriate for a children's b
     
     // Instead of throwing an error, return fallback images
     // Our updated Gemini implementation handles fallbacks automatically
-    // We'll just call the function again which will utilize the fallback mechanism
     console.log("Using fallback images for the story");
-    return await generateVisualStoryImagesWithGemini(imagePrompts);
+    
+    try {
+      // Try once more with different approach
+      const fallbackPrompts = pages.map((page) => {
+        // Create a shorter, simplified prompt
+        return `Children's book illustration: ${page.description.substring(0, 100)}`;
+      });
+      
+      return await generateVisualStoryImagesWithGemini(fallbackPrompts);
+    } catch (fallbackError) {
+      console.error("Fallback image generation also failed:", fallbackError);
+      
+      // As a last resort, return one default image per page
+      return pages.map((_, index) => {
+        return `https://images.unsplash.com/photo-1629414278888-abcdb8e0a904?w=800&auto=format&fit=crop&page=${index}`;
+      });
+    }
   }
 }
