@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import StepProgress from "@/components/book-form/StepProgress";
 import ChildInfo from "@/components/book-form/ChildInfo";
-import CharacterCustomization from "@/components/book-form/CharacterCustomization";
+import VisualCharacterCustomizer from "@/components/book-form/VisualCharacterCustomizer";
 import StorySettings from "@/components/book-form/StorySettings";
 import BookPreview from "@/components/book-form/BookPreview";
 import Checkout from "@/components/book-form/Checkout";
@@ -136,7 +136,7 @@ export default function CreateBook() {
             )}
             
             {currentStep === 2 && (
-              <CharacterCustomization 
+              <VisualCharacterCustomizer 
                 bookData={bookData} 
                 updateBookData={updateBookData} 
                 onNext={nextStep} 
