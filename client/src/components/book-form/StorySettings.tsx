@@ -33,7 +33,7 @@ export default function StorySettings({
   onPrev,
   isGenerating
 }: StorySettingsProps) {
-  const [selectedCompanions, setSelectedCompanions] = useState<string[]>(bookData.companions || []);
+  const [selectedCompanions, setSelectedCompanions] = useState<string[]>(bookData.companions || ["dragon", "fairy"]);
   const [storyLengthLabel, setStoryLengthLabel] = useState(() => {
     const value = bookData.storyLength || "2";
     return value === "1" ? "Short" : value === "3" ? "Long" : "Medium";
@@ -42,9 +42,9 @@ export default function StorySettings({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      storyTheme: bookData.storyTheme || "",
-      storyGoal: bookData.storyGoal || "",
-      companions: bookData.companions || [],
+      storyTheme: bookData.storyTheme || "magic",
+      storyGoal: bookData.storyGoal || "explore",
+      companions: bookData.companions || ["dragon", "fairy"],
       storyLength: bookData.storyLength || "2",
     },
   });
