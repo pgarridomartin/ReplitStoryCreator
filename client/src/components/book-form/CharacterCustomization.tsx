@@ -52,56 +52,54 @@ export default function CharacterCustomization({
           render={({ field }) => (
             <FormItem className="mb-6">
               <FormLabel className="font-semibold mb-3">Choose Character Style</FormLabel>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {[
-                  {
-                    value: "cartoon",
-                    label: "Cartoon",
-                    image: "https://images.unsplash.com/photo-1580094333632-438bdc04f79f?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
-                  },
-                  {
-                    value: "watercolor",
-                    label: "Watercolor",
-                    image: "https://images.unsplash.com/photo-1582201942988-13e60e4556ee?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
-                  },
-                  {
-                    value: "3d",
-                    label: "3D",
-                    image: "https://images.unsplash.com/photo-1584824388899-127cfc78fa31?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
-                  },
-                ].map((style) => (
-                  <div key={style.value} className="character-option cursor-pointer">
-                    <FormControl>
-                      <RadioGroup 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                        className="hidden"
-                      >
-                        <div className="relative">
-                          <RadioGroupItem 
-                            value={style.value} 
-                            id={`style-${style.value}`} 
-                            className="sr-only" 
+              <FormControl>
+                <RadioGroup 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+                >
+                  {[
+                    {
+                      value: "cartoon",
+                      label: "Cartoon",
+                      image: "https://images.unsplash.com/photo-1580094333632-438bdc04f79f?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+                    },
+                    {
+                      value: "watercolor",
+                      label: "Watercolor",
+                      image: "https://images.unsplash.com/photo-1582201942988-13e60e4556ee?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+                    },
+                    {
+                      value: "3d",
+                      label: "3D",
+                      image: "https://images.unsplash.com/photo-1584824388899-127cfc78fa31?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80",
+                    },
+                  ].map((style) => (
+                    <div key={style.value} className="character-option cursor-pointer">
+                      <div className="relative">
+                        <RadioGroupItem 
+                          value={style.value} 
+                          id={`style-${style.value}`} 
+                          className="sr-only" 
+                        />
+                        <label
+                          htmlFor={`style-${style.value}`}
+                          className={`block cursor-pointer border-2 rounded-xl p-4 transition-all ${
+                            field.value === style.value ? 'border-[#FF6B6B] shadow-lg' : 'border-gray-200'
+                          }`}
+                        >
+                          <img 
+                            src={style.image} 
+                            alt={`${style.label} style character`} 
+                            className="w-full h-32 object-cover rounded-lg mb-2" 
                           />
-                          <label
-                            htmlFor={`style-${style.value}`}
-                            className={`block cursor-pointer border-2 rounded-xl p-4 transition-all ${
-                              field.value === style.value ? 'border-[#FF6B6B] shadow-lg' : 'border-gray-200'
-                            }`}
-                          >
-                            <img 
-                              src={style.image} 
-                              alt={`${style.label} style character`} 
-                              className="w-full h-32 object-cover rounded-lg mb-2" 
-                            />
-                            <h5 className="font-bold text-center">{style.label}</h5>
-                          </label>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                  </div>
-                ))}
-              </div>
+                          <h5 className="font-bold text-center">{style.label}</h5>
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -116,7 +114,7 @@ export default function CharacterCustomization({
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   className="flex flex-wrap gap-3"
                 >
                   {["short", "long", "curly", "wavy"].map((hair) => (
@@ -152,7 +150,7 @@ export default function CharacterCustomization({
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   className="flex flex-wrap gap-4"
                 >
                   {[
